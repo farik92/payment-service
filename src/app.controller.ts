@@ -1,10 +1,5 @@
 import { Controller, Get, Post } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
 @ApiTags('Notes')
