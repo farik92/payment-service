@@ -1,4 +1,5 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Res, HttpStatus } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
@@ -13,7 +14,8 @@ export class AppController {
   }
 
   @Post('create')
-  createHello() {
-    return this.appService.createHello();
+  createHello(@Res() res: Response) {
+    //return this.appService.createHello();
+    res.status(HttpStatus.CREATED).send();
   }
 }
