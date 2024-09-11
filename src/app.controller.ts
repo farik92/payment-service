@@ -14,8 +14,8 @@ export class AppController {
   }
 
   @Post('create')
-  createHello(@Res() res: Response) {
-    //return this.appService.createHello();
-    res.status(HttpStatus.CREATED).send();
+  createHello() {
+    return this.appService.createHello();
+    //res.status(HttpStatus.CREATED).send();
   }
 }

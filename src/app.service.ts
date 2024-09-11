@@ -7,6 +7,10 @@ export class AppService {
   }
 
   createHello() {
-    return console.log('you used post request');
+    //return 'you used post request';
+    return {
+      response: 'you used post request',
+      code: 200,
+    };
   }
 }
