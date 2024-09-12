@@ -1,18 +1,18 @@
-import { Injectable, Req } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { lastValueFrom, map } from 'rxjs';
+import { HttpException, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as https from 'https';
+import fetch from 'node-fetch';
+import { v4 as uuidv4 } from 'uuid';
+import * as process from 'node:process';
 
 @Injectable()
 export class TbankService {
   private readonly httpsAgent: https.Agent;
 
-  constructor(private httpService: HttpService) {
+  constructor() {
     this.httpsAgent = new https.Agent({
       cert: fs.readFileSync(process.env.TBANK_PEM),
       key: fs.readFileSync(process.env.TBANK_KEY),
-      rejectUnauthorized: true,
     });
   }
 
@@ -20,63 +20,69 @@ export class TbankService {
     const url = process.env.TBANK_URL + 'beneficiaries';
     const bearerToken = process.env.TBANK_TOKEN;
 
-    const response = await lastValueFrom(
-      this.httpService.get(url, {
+    try {
+      const response = await fetch(url, {
+        method: 'get',
         headers: {
           Authorization: `Bearer ${bearerToken}`,
           'Content-Type': 'application/json',
         },
-        httpsAgent: this.httpsAgent,
-      }),
-    );
-
-    return response.data;
+        agent: this.httpsAgent,
+      });
+      if (!response.ok) {
+        throw new HttpException(response.statusText, response.status);
+      }
+      return await response.json();
+    } catch (error) {
+      throw new Error(`Error on get beneficiaries: ${error}`);
+    }
   }
 
-  async createBeneficiary(data: JSON) {
+  async createBeneficiary(data: any) {
     const url = process.env.TBANK_URL + 'beneficiaries';
     const bearerToken = process.env.TBANK_TOKEN;
 
     try {
-      const response = await lastValueFrom(
-        this.httpService.request({
-          url: url,
-          method: 'POST',
-          data: data,
-          headers: {
-            Authorization: `Bearer ${bearerToken}`,
-            'Content-Type': 'application/json',
-            'Idempotency-Key': '113f08af-35c5-43c2-ae3b-9016bdbb8fbb',
-            Accept: 'application/json',
-          },
-          httpsAgent: this.httpsAgent,
-          validateStatus: function () {
-            return true;
-          },
-        }),
-      );
-      return await response.data;
+      const response = await fetch(url, {
+        method: 'post',
+        body: JSON.stringify(data),
+        headers: {
+          Authorization: `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json',
+          'Idempotency-Key': uuidv4(),
+          Accept: 'application/json',
+        },
+        agent: this.httpsAgent,
+      });
+      if (!response.ok) {
+        return await response.json();
+      }
+      return await response.json();
     } catch (error) {
-      throw new Error(`Error making payment: ${error}`);
+      throw new Error(`Error on create beneficiary: ${error}`);
     }
   }
 
-  async makePayment() {
-    const url = process.env.TBANK_TEST_URL;
-
+  async getBalance(data: any) {
+    const url =
+      process.env.TBANK_URL + `virtual-accounts/balances?beneficiaryId=${data}`;
+    const bearerToken = process.env.TBANK_TOKEN;
     try {
-      const response = await lastValueFrom(
-        this.httpService.post(url, {
-          headers: {
-            Authorization: `Bearer ${process.env.TBANK_TEST_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          httpsAgent: this.httpsAgent,
-        }),
-      );
-      return response.data;
+      const response = await fetch(url, {
+        method: 'get',
+        headers: {
+          Authorization: `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json',
+        },
+        agent: this.httpsAgent,
+      });
+      if (!response.ok) {
+        throw new HttpException(response.statusText, response.status);
+      }
+      const balance = await response.json();
+      return balance.results;
     } catch (error) {
-      throw new Error(`Error making payment: ${error.message}`);
+      throw new Error(`Error on get balance: ${error}`);
     }
   }
 }
