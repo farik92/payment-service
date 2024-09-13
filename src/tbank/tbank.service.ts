@@ -8,81 +8,116 @@ import * as process from 'node:process';
 @Injectable()
 export class TbankService {
   private readonly httpsAgent: https.Agent;
+  private readonly baseUrl: string;
+  private readonly baseUrlV2: string;
+  private readonly bearerToken: string;
+  readonly accountNumber: string;
 
   constructor() {
     this.httpsAgent = new https.Agent({
       cert: fs.readFileSync(process.env.TBANK_PEM),
       key: fs.readFileSync(process.env.TBANK_KEY),
     });
+    this.baseUrl = process.env.TBANK_URL || '';
+    this.baseUrlV2 = process.env.TBANK_URL_V2 || '';
+    this.bearerToken = process.env.TBANK_TOKEN || '';
+    this.accountNumber = process.env.TBANK_ACCOUNT || '';
   }
 
-  async getBeneficiaries() {
-    const url = process.env.TBANK_URL + 'beneficiaries';
-    const bearerToken = process.env.TBANK_TOKEN;
+  async request<T>(
+    endpoint: string,
+    method: string,
+    body?: any,
+    headers: Record<string, string> = {},
+  ): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
 
     try {
       const response = await fetch(url, {
-        method: 'get',
+        method,
+        body: body ? JSON.stringify(body) : undefined,
         headers: {
-          Authorization: `Bearer ${bearerToken}`,
+          Authorization: `Bearer ${this.bearerToken}`,
           'Content-Type': 'application/json',
+          ...headers,
         },
         agent: this.httpsAgent,
       });
+
       if (!response.ok) {
         throw new HttpException(response.statusText, response.status);
       }
-      return await response.json();
+
+      return (await response.json()) as T;
     } catch (error) {
-      throw new Error(`Error on get beneficiaries: ${error}`);
+      throw new Error(`Error during request to ${url}: ${error.message}`);
     }
   }
 
-  async createBeneficiary(data: any) {
-    const url = process.env.TBANK_URL + 'beneficiaries';
-    const bearerToken = process.env.TBANK_TOKEN;
+  async v2request<T>(
+    endpoint: string,
+    method: string,
+    body?: any,
+    headers: Record<string, string> = {},
+  ): Promise<T> {
+    const url = `${this.baseUrlV2}${endpoint}`;
 
     try {
       const response = await fetch(url, {
-        method: 'post',
-        body: JSON.stringify(data),
+        method,
+        body: body ? JSON.stringify(body) : undefined,
         headers: {
-          Authorization: `Bearer ${bearerToken}`,
+          Authorization: `Bearer ${this.bearerToken}`,
           'Content-Type': 'application/json',
-          'Idempotency-Key': uuidv4(),
-          Accept: 'application/json',
+          ...headers,
         },
         agent: this.httpsAgent,
       });
-      if (!response.ok) {
-        return await response.json();
-      }
-      return await response.json();
-    } catch (error) {
-      throw new Error(`Error on create beneficiary: ${error}`);
-    }
-  }
 
-  async getBalance(data: any) {
-    const url =
-      process.env.TBANK_URL + `virtual-accounts/balances?beneficiaryId=${data}`;
-    const bearerToken = process.env.TBANK_TOKEN;
-    try {
-      const response = await fetch(url, {
-        method: 'get',
-        headers: {
-          Authorization: `Bearer ${bearerToken}`,
-          'Content-Type': 'application/json',
-        },
-        agent: this.httpsAgent,
-      });
       if (!response.ok) {
         throw new HttpException(response.statusText, response.status);
       }
-      const balance = await response.json();
-      return balance.results;
+
+      return (await response.json()) as T;
     } catch (error) {
-      throw new Error(`Error on get balance: ${error}`);
+      throw new Error(`Error during request to ${url}: ${error.message}`);
     }
+  }
+
+  async getBalance(beneficiaryId: string): Promise<any> {
+    return this.request<any>(
+      `virtual-accounts/balances?beneficiaryId=${beneficiaryId}`,
+      'GET',
+    );
+  }
+
+  async getDealSteps(dealId: string): Promise<any[]> {
+    return this.request<any>(`deals/${dealId}/steps`, 'GET');
+  }
+
+  async createDealSteps(dealId: string, description: string): Promise<any[]> {
+    const data = { description: description };
+    return this.request<any>(`deals/${dealId}/steps`, 'POST', data, {
+      'Idempotency-Key': uuidv4(),
+    });
+  }
+
+  async deleteDealSteps(dealId: string, stepId: string): Promise<any[]> {
+    return this.request<any>(`deals/${dealId}/steps/${stepId}`, 'DELETE');
+  }
+
+  async updateDealSteps(
+    dealId: string,
+    stepId: string,
+    description: string,
+  ): Promise<any[]> {
+    return this.request<any>(`deals/${dealId}/steps/${stepId}`, 'PUT');
+  }
+
+  async completeDealSteps(dealId: string, stepId: string): Promise<any[]> {
+    return this.request<any>(
+      `deals/${dealId}/steps/${stepId}/complete`,
+      'POST',
+    );
   }
 }

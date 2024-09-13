@@ -7,7 +7,9 @@ import isINNvalid from '../helper/validate-nn';
 @ValidatorConstraint({ name: 'inn', async: false })
 export class InnValidator implements ValidatorConstraintInterface {
   validate(text: string) {
-    return isINNvalid({ Value: text });
+    if (text) {
+      return isINNvalid({ Value: text });
+    }
   }
 
   defaultMessage() {

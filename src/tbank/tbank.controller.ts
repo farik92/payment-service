@@ -2,67 +2,70 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
+  Put,
+  Query,
   Req,
-  Res,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { TbankService } from './tbank.service';
-import { Request } from 'express';
-import { validate } from 'class-validator';
-import { plainToInstance } from 'class-transformer';
-import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto';
-import { CreateBeneficiaryIpDto } from './dto/create-beneficiary-ip.dto';
-import { CreateBeneficiarySeDto } from './dto/create-beneficiary-se.dto';
 
 @Controller('tbank')
 export class TbankController {
   constructor(private readonly tbankService: TbankService) {}
 
-  @Get('beneficiaries')
-  async getBeneficiaries() {
-    return await this.tbankService.getBeneficiaries();
+  @Get('steps')
+  async getDealSteps(@Param('dealId') dealId: string) {
+    return await this.tbankService.getDealSteps(dealId);
   }
 
-  @Post('beneficiaries')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  async createBeneficiary(@Body() body: any) {
-    const { type } = body;
-    let dto:
-      | CreateBeneficiaryDto
-      | CreateBeneficiaryIpDto
-      | CreateBeneficiarySeDto;
-    if (type === 'UL_RESIDENT') {
-      console.log('Beneficiary type is UL_RESIDENT');
-      dto = plainToInstance(CreateBeneficiaryDto, body);
-    } else if (type === 'IP_RESIDENT') {
-      console.log('Beneficiary type is IP_RESIDENT');
-      dto = plainToInstance(CreateBeneficiaryIpDto, body);
-    } else if (type === 'FL_RESIDENT') {
-      console.log('Beneficiary type is FL_RESIDENT');
-      dto = plainToInstance(CreateBeneficiarySeDto, body);
-    } else {
-      throw new BadRequestException('Invalid beneficiary type');
-    }
+  @Post('steps')
+  async createDealStep(
+    @Param('dealId') dealId: string,
+    @Param('description') description: string,
+  ) {
+    return await this.tbankService.createDealSteps(dealId, description);
+  }
 
-    const errors = await validate(dto);
+  @Delete('steps')
+  async deleteDealSteps(
+    @Param('dealId') dealId: string,
+    @Param('stepId') stepId: string,
+  ) {
+    return await this.tbankService.deleteDealSteps(dealId, stepId);
+  }
 
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
+  async updateDealSteps(
+    @Param('dealId') dealId: string,
+    @Param('stepId') stepId: string,
+    @Param('description') description: string,
+  ) {
+    return await this.tbankService.updateDealSteps(dealId, stepId, description);
+  }
 
-    return await this.tbankService.createBeneficiary(dto);
+  async completeDealSteps(
+    @Param('dealId') dealId: string,
+    @Param('stepId') stepId: string,
+  ) {
+    return await this.tbankService.completeDealSteps(dealId, stepId);
   }
 
   @Get('balance')
-  async getBalance(@Req() request: Request) {
-    return await this.tbankService.getBalance(request.query.id);
-  }
+  async getBalance(@Query('id') beneficiaryId: string) {
+    if (!beneficiaryId) {
+      throw new BadRequestException('Beneficiary ID is required');
+    }
 
-  @Post('make')
-  async makePayment(@Req() request: Request) {
-    return await request.body;
+    try {
+      return await this.tbankService.getBalance(beneficiaryId);
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to fetch balance: ${error.message}`,
+      );
+    }
   }
 }
