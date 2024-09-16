@@ -31,6 +31,10 @@ export class DealsService {
     return await this.tbankService.request(`deals/${id}/cancel`, 'POST');
   }
 
+  async isValid(id: string): Promise<any[]> {
+    return await this.tbankService.request(`deals/${id}/is-valid`, 'GET');
+  }
+
   async remove(id: string): Promise<any[]> {
     return await this.tbankService.request(`deals/${id}`, 'DELETE');
   }

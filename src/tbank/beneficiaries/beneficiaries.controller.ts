@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -17,8 +18,8 @@ export class BeneficiariesController {
   constructor(private readonly beneficiariesService: BeneficiariesService) {}
 
   @Get()
-  async findAll() {
-    return await this.beneficiariesService.findAll();
+  async findAll(@Query() params: any) {
+    return await this.beneficiariesService.findAll(params.offset);
   }
 
   @Get(':id')

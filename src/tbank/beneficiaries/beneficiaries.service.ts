@@ -6,8 +6,11 @@ import { TbankService } from '../tbank.service';
 export class BeneficiariesService {
   constructor(private readonly tbankService: TbankService) {}
 
-  async findAll(): Promise<any[]> {
-    return await this.tbankService.request<any>('beneficiaries', 'GET');
+  async findAll(offset: number): Promise<any[]> {
+    return await this.tbankService.request<any>(
+      `beneficiaries?offset=${offset ? offset : 0}`,
+      'GET',
+    );
   }
 
   async findOne(id: string): Promise<any[]> {

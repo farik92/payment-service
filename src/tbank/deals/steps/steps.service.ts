@@ -1,26 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { CreateStepDto } from './dto/create-step.dto';
-import { UpdateStepDto } from './dto/update-step.dto';
+//import { CreateStepDto } from './dto/create-step.dto';
+//import { UpdateStepDto } from './dto/update-step.dto';
+import { TbankService } from '../../tbank.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class StepsService {
-  create(createStepDto: CreateStepDto) {
-    return 'This action adds a new step';
+  constructor(private readonly tbankService: TbankService) {}
+
+  async create(id: string, body: any): Promise<any[]> {
+    return this.tbankService.request<any>(`deals/${id}/steps`, 'POST', body, {
+      'Idempotency-Key': uuidv4(),
+    });
   }
 
-  findAll() {
-    return `This action returns all steps`;
+  async findAll(id: string): Promise<any[]> {
+    return this.tbankService.request<any>(`deals/${id}/steps`, 'GET');
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} step`;
+  async update(dealId: string, id: string, body: any) {
+    return this.tbankService.request<any>(
+      `deals/${dealId}/steps/${id}`,
+      'PUT',
+      body,
+    );
   }
 
-  update(id: number, updateStepDto: UpdateStepDto) {
-    return `This action updates a #${id} step`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} step`;
+  async remove(dealId: string, id: string) {
+    return this.tbankService.request<any>(
+      `deals/${dealId}/steps/${id}`,
+      'DELETE',
+    );
   }
 }

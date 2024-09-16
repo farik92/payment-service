@@ -91,29 +91,6 @@ export class TbankService {
     );
   }
 
-  async getDealSteps(dealId: string): Promise<any[]> {
-    return this.request<any>(`deals/${dealId}/steps`, 'GET');
-  }
-
-  async createDealSteps(dealId: string, description: string): Promise<any[]> {
-    const data = { description: description };
-    return this.request<any>(`deals/${dealId}/steps`, 'POST', data, {
-      'Idempotency-Key': uuidv4(),
-    });
-  }
-
-  async deleteDealSteps(dealId: string, stepId: string): Promise<any[]> {
-    return this.request<any>(`deals/${dealId}/steps/${stepId}`, 'DELETE');
-  }
-
-  async updateDealSteps(
-    dealId: string,
-    stepId: string,
-    description: string,
-  ): Promise<any[]> {
-    return this.request<any>(`deals/${dealId}/steps/${stepId}`, 'PUT');
-  }
-
   async completeDealSteps(dealId: string, stepId: string): Promise<any[]> {
     return this.request<any>(
       `deals/${dealId}/steps/${stepId}/complete`,

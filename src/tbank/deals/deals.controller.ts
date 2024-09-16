@@ -1,15 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Delete } from '@nestjs/common';
 import { DealsService } from './deals.service';
-import { CreateDealDto } from './dto/create-deal.dto';
-import { UpdateDealDto } from './dto/update-deal.dto';
 
 @Controller('deals')
 export class DealsController {
@@ -38,6 +28,11 @@ export class DealsController {
   @Post(':id/cancel')
   async cancel(@Param('id') id: string) {
     return await this.dealsService.cancel(id);
+  }
+
+  @Get(':id/is-valid')
+  async isValid(@Param('id') id: string) {
+    return await this.dealsService.isValid(id);
   }
 
   @Delete(':id')
