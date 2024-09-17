@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDealDto } from './dto/create-deal.dto';
-import { UpdateDealDto } from './dto/update-deal.dto';
 import { TbankService } from '../tbank.service';
 import { v4 as uuidv4 } from 'uuid';
 

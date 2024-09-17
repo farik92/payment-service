@@ -7,11 +7,20 @@ import { BeneficiariesService } from './beneficiaries/beneficiaries.service';
 import { DealsController } from './deals/deals.controller';
 import { DealsModule } from './deals/deals.module';
 import { DealsService } from './deals/deals.service';
+import { IncomingTransactionsModule } from './incoming-transactions/incoming-transactions.module';
+import { PaymentsModule } from './payments/payments.module';
+import { VirtualAccountsModule } from './virtual-accounts/virtual-accounts.module';
 
 @Module({
-  imports: [BeneficiariesModule, DealsModule],
-  providers: [TbankService, DealsService, BeneficiariesService],
-  controllers: [TbankController, BeneficiariesController],
+  imports: [
+    BeneficiariesModule,
+    DealsModule,
+    IncomingTransactionsModule,
+    PaymentsModule,
+    VirtualAccountsModule,
+  ],
+  providers: [TbankService, BeneficiariesService, DealsService],
+  controllers: [BeneficiariesController, DealsController],
   exports: [],
 })
 export class TbankModule {}

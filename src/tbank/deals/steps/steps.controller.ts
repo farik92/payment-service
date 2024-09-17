@@ -8,34 +8,42 @@ import {
   Delete,
 } from '@nestjs/common';
 import { StepsService } from './steps.service';
-//import { CreateStepDto } from './dto/create-step.dto';
-//import { UpdateStepDto } from './dto/update-step.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('steps')
+@ApiTags('Этапы сделки')
+@Controller('deals')
 export class StepsController {
   constructor(private readonly stepsService: StepsService) {}
 
-  @Post(':dealId')
+  @Post(':dealId/steps')
   async create(@Param('dealId') dealId: string, @Body() body) {
     return await this.stepsService.create(dealId, body);
   }
 
-  @Get(':dealId')
+  @Get(':dealId/steps')
   async findAll(@Param('dealId') dealId: string) {
     return await this.stepsService.findAll(dealId);
   }
 
-  @Put(':id')
+  @Put(':dealId/steps/:stepId')
   update(
     @Param('dealId') dealId: string,
-    @Param('id') id: string,
+    @Param('stepId') stepId: string,
     @Body() body,
   ) {
-    return this.stepsService.update(dealId, id, body);
+    return this.stepsService.update(dealId, stepId, body);
   }
 
-  @Delete(':id')
-  remove(@Param('dealId') dealId: string, @Param('id') id: string) {
-    return this.stepsService.remove(dealId, id);
+  @Delete(':dealId/steps/:stepId')
+  remove(@Param('dealId') dealId: string, @Param('stepId') stepId: string) {
+    return this.stepsService.remove(dealId, stepId);
+  }
+
+  @Post(':dealId/steps/:stepId/complete')
+  async complete(
+    @Param('dealId') dealId: string,
+    @Param('stepId') stepId: string,
+  ) {
+    return await this.stepsService.complete(dealId, stepId);
   }
 }

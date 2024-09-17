@@ -9,7 +9,7 @@ import * as process from 'node:process';
 export class TbankService {
   private readonly httpsAgent: https.Agent;
   private readonly baseUrl: string;
-  private readonly baseUrlV2: string;
+  private readonly newVersionBaseUrl: string;
   private readonly bearerToken: string;
   readonly accountNumber: string;
 
@@ -18,10 +18,10 @@ export class TbankService {
       cert: fs.readFileSync(process.env.TBANK_PEM),
       key: fs.readFileSync(process.env.TBANK_KEY),
     });
-    this.baseUrl = process.env.TBANK_URL || '';
-    this.baseUrlV2 = process.env.TBANK_URL_V2 || '';
-    this.bearerToken = process.env.TBANK_TOKEN || '';
-    this.accountNumber = process.env.TBANK_ACCOUNT || '';
+    this.baseUrl = process.env.TBANK_URL;
+    this.newVersionBaseUrl = process.env.TBANK_URL_NEW_VERSION;
+    this.bearerToken = process.env.TBANK_TOKEN;
+    this.accountNumber = process.env.TBANK_ACCOUNT;
   }
 
   async request<T>(
@@ -31,6 +31,7 @@ export class TbankService {
     headers: Record<string, string> = {},
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
+    console.log(url, endpoint, this.baseUrl);
 
     try {
       const response = await fetch(url, {
@@ -54,13 +55,14 @@ export class TbankService {
     }
   }
 
-  async v2request<T>(
+  async newVersionRequest<T>(
     endpoint: string,
     method: string,
     body?: any,
     headers: Record<string, string> = {},
   ): Promise<T> {
-    const url = `${this.baseUrlV2}${endpoint}`;
+    const url = `${this.newVersionBaseUrl}${endpoint}`;
+    console.log(url, endpoint, this.newVersionBaseUrl);
 
     try {
       const response = await fetch(url, {

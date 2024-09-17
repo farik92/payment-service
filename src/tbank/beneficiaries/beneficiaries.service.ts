@@ -31,15 +31,27 @@ export class BeneficiariesService {
     );
   }
 
+  async scoring(
+    beneficiaryId: string,
+    passed: boolean,
+    offset: number,
+    limit: number,
+  ): Promise<any[]> {
+    return await this.tbankService.newVersionRequest<any>(
+      `beneficiaries/scoring?${beneficiaryId ? 'beneficiaryId=' + beneficiaryId + '&' : ''}passed=${passed}&offset=${offset}&limit=${limit}`,
+      'GET',
+    );
+  }
+
   async scoringAll(): Promise<any[]> {
-    return await this.tbankService.v2request<any>(
-      `beneficiaries/scoring?passed=true`,
+    return await this.tbankService.newVersionRequest<any>(
+      `beneficiaries/scoring?passed=false`,
       'GET',
     );
   }
 
   async scoringOne(id: string): Promise<any[]> {
-    return await this.tbankService.v2request<any>(
+    return await this.tbankService.newVersionRequest<any>(
       `beneficiaries/scoring?beneficiaryId=${id}&passed=false`,
       'GET',
     );

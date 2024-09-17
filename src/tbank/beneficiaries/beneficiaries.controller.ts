@@ -9,27 +9,76 @@ import {
   Query,
   UsePipes,
   ValidationPipe,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BeneficiariesService } from './beneficiaries.service';
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto';
+import { ApiTags, ApiQuery } from '@nestjs/swagger';
 
+@ApiTags('Бенефициары')
 @Controller('beneficiaries')
 export class BeneficiariesController {
   constructor(private readonly beneficiariesService: BeneficiariesService) {}
 
+  @Get('scoring')
+  @ApiQuery({
+    name: 'beneficiaryId',
+    type: String,
+    required: false,
+    description:
+      'Идентификатор бенефициара, по которому необходимо вернуть результаты проверки. Если вы не передаете параметр, возвращаются результаты по всем бенефициарам.',
+  })
+  @ApiQuery({
+    name: 'passed',
+    type: Boolean,
+    required: false,
+    description: 'Фильтр по результату проверки (прошел/не прошел).',
+  })
+  @ApiQuery({
+    name: 'offset',
+    type: Number,
+    required: false,
+    description:
+      'Количество результатов проверки, которое нужно пропустить. Значение по умолчанию — 0',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description:
+      'Количество результатов проверки, которое нужно вывести. Значение по умолчанию — 50',
+  })
+  async scoring(
+    @Query('beneficiaryId') beneficiaryId?: string,
+    @Query('passed') passed: boolean = true,
+    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number = 0,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number = 50,
+  ): Promise<any> {
+    return await this.beneficiariesService.scoring(
+      beneficiaryId,
+      passed,
+      offset,
+      limit,
+    );
+  }
+
   @Get()
-  async findAll(@Query() params: any) {
+  async findAll(@Query() params: any): Promise<any> {
     return await this.beneficiariesService.findAll(params.offset);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<any> {
+    console.log('id');
     return await this.beneficiariesService.findOne(id);
   }
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  async create(@Body() createBeneficiaryDto: CreateBeneficiaryDto) {
+  async create(
+    @Body() createBeneficiaryDto: CreateBeneficiaryDto,
+  ): Promise<any> {
     try {
       return await this.beneficiariesService.create(createBeneficiaryDto);
     } catch (error) {
@@ -44,22 +93,7 @@ export class BeneficiariesController {
   async update(
     @Body() createBeneficiaryDto: CreateBeneficiaryDto,
     @Param('id') id: string,
-  ) {
+  ): Promise<any> {
     return await this.beneficiariesService.update(createBeneficiaryDto, id);
-  }
-
-  @Get('scoring')
-  async scoringAll() {
-    return await this.beneficiariesService.scoringAll();
-  }
-
-  @Get('scoring/:id')
-  async scoringOne(@Param('id') id: string) {
-    const response = await this.beneficiariesService.scoringOne(id);
-    console.log(response['results'].length);
-    if (response['results'].length !== 0) {
-      return response['results'][0].errors[0].description;
-    }
-    return response;
   }
 }
