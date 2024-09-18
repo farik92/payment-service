@@ -2,7 +2,6 @@ import { HttpException, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as https from 'https';
 import fetch from 'node-fetch';
-import { v4 as uuidv4 } from 'uuid';
 import * as process from 'node:process';
 
 @Injectable()
@@ -31,7 +30,6 @@ export class TbankService {
     headers: Record<string, string> = {},
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    console.log(url, endpoint, this.baseUrl);
 
     try {
       const response = await fetch(url, {
@@ -62,7 +60,6 @@ export class TbankService {
     headers: Record<string, string> = {},
   ): Promise<T> {
     const url = `${this.newVersionBaseUrl}${endpoint}`;
-    console.log(url, endpoint, this.newVersionBaseUrl);
 
     try {
       const response = await fetch(url, {

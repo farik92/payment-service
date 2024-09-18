@@ -11,6 +11,7 @@ import {
   ValidationPipe,
   DefaultValuePipe,
   ParseIntPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { BeneficiariesService } from './beneficiaries.service';
 import { CreateBeneficiaryDto } from './dto/create-beneficiary.dto';
@@ -69,8 +70,7 @@ export class BeneficiariesController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<any> {
-    console.log('id');
+  async findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<any> {
     return await this.beneficiariesService.findOne(id);
   }
 
